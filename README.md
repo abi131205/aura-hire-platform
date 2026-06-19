@@ -12,7 +12,7 @@ This repository contains two main components:
 
 Because the full candidate dataset exceeds GitHub's size limits, please download the files below and place them in the correct directory:
 
-* **Full Candidate Dataset (`candidates.jsonl`)**: [[DOWNLOAD HERE - INSERT YOUR GOOGLE DRIVE SHARING LINK](https://drive.google.com/drive/folders/1297tljn-qwgI0j8ct3JU42-VLtIwo0HL?usp=drive_link)]
+* **Full Candidate Dataset (`candidates.jsonl`)**: [[DOWNLOAD HERE - GOOGLE DRIVE LINK](https://drive.google.com/drive/folders/1297tljn-qwgI0j8ct3JU42-VLtIwo0HL?usp=drive_link)]
 * **Precomputed Embeddings Cache (`embeddings.pkl`)**: Already included in `epoch-one-track1/artifacts/` (14MB) for instant execution.
 
 **Setup Location**: 
