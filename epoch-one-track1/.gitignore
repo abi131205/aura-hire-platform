@@ -1,0 +1,10 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+data/candidates.jsonl
+# Keep artifacts folder but ignore large embeddings cache if desired, 
+# though 12MB cache can be pushed for direct grading.
+# artifacts/embeddings.pkl

@@ -1,0 +1,96 @@
+:root {
+  /* Sage & Terracotta Color Palette */
+  --bg-cream: #F8F7F4;
+  --surface: #FFFFFF;
+  --primary-sage: #6B8F71;
+  --primary-sage-hover: #5D7D63;
+  --primary-sage-light: #F0F4F1;
+  --accent-terracotta: #C96C4A;
+  --accent-terracotta-hover: #B85F3E;
+  --accent-terracotta-light: #FDF4F0;
+  --warning-sand: #D4A373;
+  --warning-sand-light: #FCF7F2;
+  --success: #4CAF50;
+  --success-light: #EDF7ED;
+  --text-primary: #2B2D42;
+  --text-secondary: #6B7280;
+  --border-color: #E5E7EB;
+  --border-light: #F3F4F6;
+  
+  /* Fonts */
+  --font-heading: 'Playfair Display', Georgia, serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  
+  /* Shadows & Effects */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(107, 143, 113, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 10px 15px -3px rgba(107, 143, 113, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-premium: 0 20px 25px -5px rgba(43, 45, 66, 0.03), 0 10px 10px -5px rgba(43, 45, 66, 0.02);
+  --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-full: 9999px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-cream);
+  color: var(--text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Scrollbar Customization for Premium feel */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(107, 143, 113, 0.3);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 143, 113, 0.5);
+}
+
+/* Common Interactive States */
+button, input, select, textarea {
+  font-family: inherit;
+}
+
+a {
+  color: var(--primary-sage);
+  text-decoration: none;
+  transition: var(--transition-smooth);
+}
+
+a:hover {
+  color: var(--primary-sage-hover);
+}
+
+/* Layout Utilities */
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
