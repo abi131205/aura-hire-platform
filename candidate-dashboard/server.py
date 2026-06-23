@@ -43,12 +43,21 @@ def load_data():
         embeddings_cache = {"candidate_ids": [], "embeddings": [], "skill_alias_map": {}}
 
     candidates_path = PROJECT_ROOT / "data" / "candidates.jsonl"
-    print(f"Loading candidates from {candidates_path}...")
+    sample_path = PROJECT_ROOT / "data" / "sample_candidates.json"
+    
     if candidates_path.exists():
+        print(f"Loading candidates from {candidates_path}...")
         with open(candidates_path, 'r', encoding='utf-8') as f:
             for line in f:
                 if line.strip():
                     all_candidates.append(json.loads(line))
+    elif sample_path.exists():
+        print(f"Loading candidates from fallback {sample_path}...")
+        with open(sample_path, 'r', encoding='utf-8') as f:
+            all_candidates = json.load(f)
+    else:
+        print("Warning: No candidate database found!")
+        
     print(f"Loaded {len(all_candidates)} candidates.")
 
 # Load once at startup

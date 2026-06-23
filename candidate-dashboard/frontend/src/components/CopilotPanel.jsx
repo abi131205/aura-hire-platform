@@ -1,6 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, MessageSquare, Loader, Sparkles } from 'lucide-react';
 
+const getApiUrl = (path) => {
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const base = isLocal ? '' : 'https://aura-hire.onrender.com';
+  return `${base}${path}`;
+};
+
 export default function CopilotPanel() {
   const [messages, setMessages] = useState([
     {
@@ -32,7 +38,7 @@ export default function CopilotPanel() {
     setIsLoading(true);
 
     try {
-      const res = await fetch('/api/copilot', {
+      const res = await fetch(getApiUrl('/api/copilot'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: text })

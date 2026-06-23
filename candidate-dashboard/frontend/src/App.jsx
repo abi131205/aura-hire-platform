@@ -23,6 +23,12 @@ import {
 } from 'lucide-react';
 import './App.css';
 
+const getApiUrl = (path) => {
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const base = isLocal ? '' : 'https://aura-hire.onrender.com';
+  return `${base}${path}`;
+};
+
 export default function App() {
   const [candidates, setCandidates] = useState([]);
   const [honeypots, setHoneypots] = useState([]);
@@ -81,12 +87,12 @@ export default function App() {
       if (mode === 'upload') {
         const formData = new FormData();
         formData.append('file', file);
-        response = await fetch('/api/rank', {
+        response = await fetch(getApiUrl('/api/rank'), {
           method: 'POST',
           body: formData,
         });
       } else {
-        response = await fetch('/api/rank', {
+        response = await fetch(getApiUrl('/api/rank'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ jd_text: jdText }),
@@ -122,7 +128,7 @@ export default function App() {
     setWeights(newWeights);
 
     try {
-      const response = await fetch('/api/rerank', {
+      const response = await fetch(getApiUrl('/api/rerank'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newWeights),
