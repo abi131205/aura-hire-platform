@@ -15,7 +15,10 @@ from src.skills_scorer import SkillsScorer
 from src.career_scorer import CareerScorer
 from src.signals_scorer import SignalsScorer
 from src.ranker import CandidateRanker
-from sentence_transformers import SentenceTransformer
+
+# Environment check: Render free tier has 512MB RAM, where PyTorch/SentenceTransformers (using 370MB+) causes OOM.
+# We skip importing it and loading models on Render, falling back to keyword-based semantic matching.
+IS_RENDER = os.environ.get("RENDER") == "true" or os.environ.get("PORT") is not None
 
 app = Flask(__name__, static_folder="frontend/dist")
 CORS(app)
@@ -38,6 +41,15 @@ def load_data():
     if cache_path.exists():
         with open(cache_path, 'rb') as f:
             embeddings_cache = pickle.load(f)
+            
+        # Optimization for Render/memory-constrained environments:
+        # Keep metadata (candidate_ids, skill_alias_map) but drop heavy embeddings matrix to save memory
+        if IS_RENDER and isinstance(embeddings_cache, dict):
+            print("Render environment detected. Keeping metadata and dropping raw embeddings to save memory.")
+            if "embeddings" in embeddings_cache:
+                embeddings_cache["embeddings"] = None
+            import gc
+            gc.collect()
     else:
         print("Warning: precomputed embeddings cache not found!")
         embeddings_cache = {"candidate_ids": [], "embeddings": [], "skill_alias_map": {}}
@@ -59,6 +71,24 @@ def load_data():
         print("Warning: No candidate database found!")
         
     print(f"Loaded {len(all_candidates)} candidates.")
+    
+    print("Precomputing lowercase search strings for fast keyword matching...")
+    for cand in all_candidates:
+        profile = cand.get("profile", {})
+        parts = [
+            profile.get("headline", ""),
+            profile.get("summary", ""),
+            profile.get("current_title", "")
+        ]
+        for s in cand.get("skills", []):
+            if isinstance(s, dict):
+                parts.append(s.get("name", ""))
+            elif isinstance(s, str):
+                parts.append(s)
+        for job in cand.get("career_history", []):
+            parts.append(job.get("title", ""))
+            parts.append(job.get("description", ""))
+        cand["search_text"] = " ".join(parts).lower()
 
 # Load once at startup
 load_data()
@@ -88,21 +118,53 @@ def rank_candidates():
     if not jd_text:
         return jsonify({"error": "No job description text or file provided"}), 400
 
-    print("Computing JD embedding...")
-    global model
-    if model is None:
-        print("Loading SentenceTransformer model lazily...")
-        model = SentenceTransformer("all-MiniLM-L6-v2")
-    current_jd_embedding = model.encode(jd_text, convert_to_numpy=True)
-
-    # Initialize scorers
+    # Initialize scorers/aliases
     skill_alias_map = embeddings_cache.get("skill_alias_map", {})
-    from src.semantic_scorer import SemanticScorer
-    semantic_scorer = SemanticScorer(PROJECT_ROOT / "artifacts" / "embeddings.pkl")
+    semantic_scores = {}
+    
+    # Determine if we should use fallback keyword semantic scorer
+    use_fallback = IS_RENDER
+    
+    if not use_fallback:
+        try:
+            print("Computing JD embedding...")
+            global model
+            if model is None:
+                print("Loading SentenceTransformer model lazily...")
+                from sentence_transformers import SentenceTransformer
+                model = SentenceTransformer("all-MiniLM-L6-v2")
+            current_jd_embedding = model.encode(jd_text, convert_to_numpy=True)
+            
+            from src.semantic_scorer import SemanticScorer
+            semantic_scorer = SemanticScorer(PROJECT_ROOT / "artifacts" / "embeddings.pkl")
 
-    print("Scoring candidates...")
-    # Compute semantic alignment
-    semantic_scores = semantic_scorer.score_candidates(current_jd_embedding, all_candidates)
+            print("Scoring candidates...")
+            # Compute semantic alignment
+            semantic_scores = semantic_scorer.score_candidates(current_jd_embedding, all_candidates)
+        except Exception as e:
+            print(f"Error running SentenceTransformer: {e}. Falling back to keyword-based semantic matching.")
+            use_fallback = True
+            
+    if use_fallback:
+        print("Using keyword-based fallback semantic matching to prevent OOM...")
+        import re
+        stop_words = {'and', 'the', 'for', 'with', 'you', 'that', 'this', 'from', 'are', 'your', 'our', 'will', 'have', 'has', 'had', 'been', 'was', 'were', 'their', 'them', 'they', 'but', 'not', 'can', 'should', 'would', 'could', 'about', 'more', 'some', 'any'}
+        
+        # Tokenize JD text and get the top 15 longest/most unique words
+        all_jd_tokens = [w for w in re.findall(r'\b[a-z]{3,15}\b', jd_text.lower()) if w not in stop_words]
+        jd_tokens = sorted(list(set(all_jd_tokens)), key=len, reverse=True)[:15]
+        
+        for cand in all_candidates:
+            cid = cand["candidate_id"]
+            search_text = cand.get("search_text", "")
+            
+            if not jd_tokens:
+                semantic_scores[cid] = 0.5
+            else:
+                matches = sum(1 for token in jd_tokens if token in search_text)
+                raw_score = matches / len(jd_tokens)
+                # Map to a realistic semantic score range [0.45, 0.85]
+                semantic_scores[cid] = 0.45 + 0.40 * raw_score
 
     # Compute static layers lazily once
     if cached_skills_scores is None:
