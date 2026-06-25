@@ -127,7 +127,8 @@ export default function CandidateTable({
                     </td>
                     <td>
                       <div className="candidate-name-cell">
-                        <span className="candidate-name">{c.name}</span>
+                        <span className="candidate-name">{c.profile?.anonymized_name || c.name}</span>
+                        <span className="candidate-id-mono" style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block', margin: '2px 0' }}>{c.candidate_id}</span>
                         <span className="candidate-title">{c.title} • {c.yoe}y YOE</span>
                       </div>
                     </td>

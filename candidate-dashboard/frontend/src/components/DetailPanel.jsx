@@ -21,16 +21,66 @@ export default function DetailPanel({ candidate }) {
     return 'honeypot';
   };
 
+  const getNoticeTag = (days) => {
+    const daysInt = parseInt(days, 10);
+    if (daysInt <= 30) {
+      return (
+        <span style={{ 
+          background: '#E8F5E9', 
+          color: '#2E7D32', 
+          padding: '2px 8px', 
+          borderRadius: '4px', 
+          fontWeight: 600, 
+          fontSize: '0.7rem',
+          marginLeft: '0.25rem',
+          display: 'inline-block'
+        }}>
+          Immediate
+        </span>
+      );
+    } else if (daysInt <= 60) {
+      return (
+        <span style={{ 
+          background: '#FFF3E0', 
+          color: '#EF6C00', 
+          padding: '2px 8px', 
+          borderRadius: '4px', 
+          fontWeight: 600, 
+          fontSize: '0.7rem',
+          marginLeft: '0.25rem',
+          display: 'inline-block'
+        }}>
+          60 days
+        </span>
+      );
+    } else {
+      return (
+        <span style={{ 
+          background: '#FFEBEE', 
+          color: '#C62828', 
+          padding: '2px 8px', 
+          borderRadius: '4px', 
+          fontWeight: 600, 
+          fontSize: '0.7rem',
+          marginLeft: '0.25rem',
+          display: 'inline-block'
+        }}>
+          Long notice
+        </span>
+      );
+    }
+  };
+
   return (
     <div className="panel fade-in">
       <div className="detail-header">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <h2 className="detail-name">{candidate.name}</h2>
+            <h2 className="detail-name">{candidate.profile?.anonymized_name || candidate.name}</h2>
             <div className="detail-sub">
               <span>{candidate.title}</span>
               <span>•</span>
-              <span>{candidate.candidate_id}</span>
+              <span style={{ fontFamily: 'monospace' }}>{candidate.candidate_id}</span>
             </div>
           </div>
           <span className={`rec-pill ${getRecommendationStyle(candidate.rec_text)}`}>
@@ -46,22 +96,22 @@ export default function DetailPanel({ candidate }) {
         </h3>
 
         {[
-          { label: 'Semantic JD Alignment', val: candidate.sub_scores.semantic },
-          { label: 'Canonical Skills Match', val: candidate.sub_scores.skills },
-          { label: 'Career History & Growth', val: candidate.sub_scores.career },
-          { label: 'Recruitment Signal Risk', val: candidate.sub_scores.signals }
+          { label: 'Semantic JD Alignment', val: candidate.sub_scores.semantic, color: '#6B8F71' },
+          { label: 'Canonical Skills Match', val: candidate.sub_scores.skills, color: '#C2A878' },
+          { label: 'Career History & Growth', val: candidate.sub_scores.career, color: '#7B6B3D' },
+          { label: 'Recruitment Signal Risk', val: candidate.sub_scores.signals, color: '#C96C4A' }
         ].map(item => (
           <div key={item.label} style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
               <span style={{ fontWeight: 500 }}>{item.label}</span>
-              <span style={{ fontWeight: 700, color: 'var(--primary-sage)' }}>{(item.val * 100).toFixed(0)}%</span>
+              <span style={{ fontWeight: 700, color: item.color }}>{(item.val * 100).toFixed(0)}%</span>
             </div>
             <div style={{ width: '100%', height: '6px', background: 'var(--border-light)', borderRadius: '999px', overflow: 'hidden' }}>
               <div 
                 style={{ 
                   width: `${item.val * 100}%`, 
                   height: '100%', 
-                  background: candidate.is_honeypot ? 'var(--accent-terracotta)' : 'var(--primary-sage)',
+                  background: candidate.is_honeypot ? 'var(--accent-terracotta)' : item.color,
                   borderRadius: '999px',
                   transition: 'width 0.5s ease-out'
                 }} 
@@ -103,8 +153,51 @@ export default function DetailPanel({ candidate }) {
               <span style={{ color: 'var(--accent-terracotta)', fontWeight: 500 }}>{con}</span>
             </div>
           ))}
+
+          {candidate.redrob_signals?.expected_salary_range_inr_lpa && (
+            <div className="bullet-item">
+              <CheckCircle size={14} className="bullet-icon success" />
+              <span>Expected Salary: <strong>₹{candidate.redrob_signals.expected_salary_range_inr_lpa[0]}L – ₹{candidate.redrob_signals.expected_salary_range_inr_lpa[1]}L per annum</strong></span>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Education Section */}
+      {candidate.education && candidate.education.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem' }}>
+          <h3 style={{ fontSize: '0.875rem', fontWeight: 600, fontFamily: 'var(--font-body)', color: 'var(--text-secondary)' }}>
+            Education
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.8125rem' }}>
+            {candidate.education.map((edu, idx) => (
+              <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <strong style={{ color: 'var(--text-primary)' }}>{edu.institution}</strong>
+                  {edu.tier === 'tier_1' && (
+                    <span style={{ 
+                      background: '#FEF3C7', 
+                      color: '#D97706', 
+                      padding: '1px 6px', 
+                      borderRadius: '4px', 
+                      fontWeight: 600, 
+                      fontSize: '0.65rem',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.2rem'
+                    }}>
+                      🏆 Tier 1 Institution
+                    </span>
+                  )}
+                </div>
+                <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
+                  {edu.degree} in {edu.field_of_study} {edu.end_year ? `(${edu.start_year} - ${edu.end_year})` : ''}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Metadata summary */}
       <div style={{ 
@@ -116,9 +209,9 @@ export default function DetailPanel({ candidate }) {
         borderRadius: 'var(--radius-md)',
         fontSize: '0.75rem'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', flexWrap: 'wrap' }}>
           <Calendar size={14} style={{ color: 'var(--text-secondary)' }} />
-          <span>Notice: <strong>{candidate.notice_period_days} days</strong></span>
+          <span>Notice: {getNoticeTag(candidate.notice_period_days)}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
           <Award size={14} style={{ color: 'var(--text-secondary)' }} />

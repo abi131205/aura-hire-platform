@@ -93,6 +93,10 @@ def load_data():
 # Load once at startup
 load_data()
 
+@app.route("/health", methods=["GET"])
+def health_check():
+    return jsonify({"status": "healthy"}), 200
+
 @app.route("/api/rank", methods=["POST"])
 def rank_candidates():
     global current_jd_embedding, cached_sub_scores
@@ -278,6 +282,14 @@ def run_ranking_calculation(w_sem, w_sk, w_car, w_sig):
             "notice_period_days": signals.get("notice_period_days", 0),
             "rec_text": rec_text,
             "is_honeypot": is_hp,
+            "profile": {
+                "anonymized_name": profile.get("anonymized_name", "")
+            },
+            "redrob_signals": {
+                "expected_salary_range_inr_lpa": signals.get("expected_salary_range_inr_lpa", [0, 0]),
+                "notice_period_days": signals.get("notice_period_days", 0)
+            },
+            "education": cand.get("education", []),
             # Add strengths & concerns for candidate inspection panel
             "strengths": [
                 f"{profile.get('years_of_experience', 0.0)}y of experience as {profile.get('current_title')}.",
