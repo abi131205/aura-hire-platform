@@ -110,7 +110,7 @@ const MOCK_HONEYPOTS = [
 ];
 
 const MOCK_ANALYTICS = {
-  total_candidates: 100000,
+  total_candidates: 50,
   qualified_candidates: 2,
   top_match_score: 0.8124,
   avg_match_percentage: 78.9,
@@ -145,6 +145,7 @@ export default function App() {
   const [showTimeoutCard, setShowTimeoutCard] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [showDemoBanner, setShowDemoBanner] = useState(true);
 
   // Keep-alive warm-up ping
   const pingServer = async () => {
@@ -197,6 +198,7 @@ export default function App() {
     setSelectedCandidate(null);
     setLoadingText("Connecting to scoring engine...");
     setShowTimeoutCard(false);
+    setShowDemoBanner(true);
 
     const timers = [];
     
@@ -480,13 +482,17 @@ export default function App() {
 
         <div className="sidebar-footer">
           <div className="status-indicator">
-            <div className={`status-dot ${candidates.length > 0 ? 'active' : 'idle'}`} />
+            <div className="status-dot idle" />
             <span>
-              {candidates.length > 0 ? 'Scorer Active' : 'Standby Mode'}
+              {candidates.length > 0 ? 'Demo Mode Active' : 'Standby Mode'}
             </span>
           </div>
-          <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
-            Sage Engine v1.2.0
+          <span style={{ 
+            fontSize: '11px', 
+            fontFamily: 'monospace', 
+            color: 'var(--text-secondary)' 
+          }}>
+            {candidates.length > 0 ? '50 sample · 100K via CLI' : 'Sage Engine v1.2.0'}
           </span>
         </div>
       </aside>
@@ -494,7 +500,7 @@ export default function App() {
       {/* 2. Main Content Container */}
       <main className="main-content-layout">
         
-        {/* Demo Mode Alert Banner */}
+        {/* Offline Fallback Demo Alert Banner */}
         {demoMode && !bannerDismissed && (
           <div style={{
             background: '#FFF3E0',
@@ -648,11 +654,27 @@ export default function App() {
                   <div style={{ background: 'var(--primary-sage-light)', color: 'var(--primary-sage)', padding: '1rem', borderRadius: 'var(--radius-full)', marginBottom: '0.5rem' }}>
                     <LayoutDashboard size={32} />
                   </div>
-                  <div className="empty-state-title" style={{ fontSize: '1.25rem' }}>Scorer Standby - Ready for Job Description</div>
-                  <p style={{ fontSize: '0.875rem', maxWidth: '420px', margin: '0 auto', color: 'var(--text-secondary)' }}>
-                    AuraHire is currently in standby mode. Once you upload a job description `.docx` file or paste text requirements on the left, the scoring algorithms will run.
+                  <div className="empty-state-title" style={{ fontSize: '1.25rem' }}>Demo Scoring Mode</div>
+                  <p style={{ fontSize: '0.875rem', maxWidth: '460px', margin: '0 auto', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                    Upload any job description to rank 50 representative candidates instantly. The full 100,000-candidate pipeline runs locally via rank.py in under 60 seconds.
                   </p>
                   
+                  <div style={{ 
+                    background: '#F0FDF4', 
+                    borderLeft: '3px solid #6B8F71', 
+                    padding: '10px 14px',
+                    borderRadius: '4px',
+                    marginTop: '1.25rem',
+                    textAlign: 'left',
+                    maxWidth: '460px',
+                    width: '100%',
+                    fontFamily: 'monospace',
+                    fontSize: '12px',
+                    color: '#166534'
+                  }}>
+                    Full pipeline: python rank.py --candidates ./data/candidates.jsonl --out ./submission.csv
+                  </div>
+
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginTop: '1.5rem', width: '100%', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                       <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Step 1</span>
@@ -673,6 +695,42 @@ export default function App() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }} className="fade-in">
               
+              {/* Demo Mode persistent Amber Banner */}
+              {showDemoBanner && (
+                <div style={{
+                  background: '#FEF3C7',
+                  border: '1px solid #D4A373',
+                  borderLeft: '4px solid #C96C4A',
+                  borderRadius: '8px',
+                  padding: '12px 20px',
+                  marginBottom: '24px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '12px',
+                  boxShadow: 'var(--shadow-sm)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span style={{ fontSize: '20px' }}>⚡</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', textAlign: 'left' }}>
+                      <span style={{ fontWeight: 700, color: '#92400E', fontSize: '14px' }}>
+                        Live Demo Mode — 50 Representative Candidates
+                      </span>
+                      <span style={{ color: '#78350F', fontSize: '13px', lineHeight: '1.4' }}>
+                        The full 100,000-candidate ranking runs via the CLI pipeline (rank.py). This dashboard demonstrates the scoring interface on a curated sample set. See GitHub for full reproduction instructions.
+                      </span>
+                    </div>
+                  </div>
+                  <button 
+                    type="button" 
+                    onClick={() => setShowDemoBanner(false)}
+                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#92400E', fontSize: '16px', fontWeight: 'bold', display: 'flex', alignItems: 'center', padding: '4px' }}
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+
               {/* Dynamic Stats Header */}
               <AnalyticsHeader analytics={analytics} />
 
@@ -918,6 +976,9 @@ export default function App() {
               <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1rem' }}>AuraHire</span>
             </div>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>© 2026 AuraHire Systems Inc. All rights reserved. Indian Runs Hackathon Edition.</p>
+            <p style={{ fontSize: '12px', color: '#6B7280', fontFamily: 'var(--font-body)', marginTop: '0.25rem' }}>
+              Dashboard runs on 50-candidate demo set. Full 100K ranking available via CLI — see README.
+            </p>
           </div>
 
           <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.8125rem' }}>

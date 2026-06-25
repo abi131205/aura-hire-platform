@@ -68,7 +68,7 @@ export default function CandidateTable({
               onClick={() => setActiveTab('honeypots')}
               style={{ color: activeTab === 'honeypots' ? 'var(--accent-terracotta)' : 'var(--text-secondary)' }}
             >
-              Honeypots ({honeypots.length})
+              Flagged ({honeypots.length}) — Demo Set
             </button>
           </div>
         </div>

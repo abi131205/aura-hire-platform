@@ -37,9 +37,10 @@ export default function AnalyticsHeader({ analytics }) {
           <div className="stat-icon">
             <Users size={20} />
           </div>
-          <div className="stat-info">
-            <span className="stat-label">Total Candidates</span>
-            <span className="stat-value">{data.total_candidates}</span>
+          <div className="stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
+            <span className="stat-label">Demo Sample</span>
+            <span className="stat-value">{data.total_candidates || 50}</span>
+            <span className="stat-sublabel" style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', marginTop: '-0.1rem' }}>of 100,000 total</span>
           </div>
         </div>
 
